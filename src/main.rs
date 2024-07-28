@@ -1,34 +1,42 @@
 mod ast;
 use std::io;
+use crate::ast::parser::{Parser};
+use crate::ast::lexer::{Lexer, Token, TokenKind};
 
-fn handle_array_token() -> Vec<String> {
-
+fn handle_array_token() -> Vec<Token> {
     println!("Digite a expressão matemática: ");
     let mut input = String::new();
 
     io::stdin().read_line(&mut input).expect("Erro ao ler a linha");
 
-    let mut lexer = ast::lexer::Lexer::new(&input);
+    let mut lexer = Lexer::new(&input);
     let mut tokens = Vec::new();
 
     while let Some(token) = lexer.next_token() {
-        if token.kind != ast::lexer::TokenKind::Whitespace{
-            if token.kind == ast::lexer::TokenKind::Eof {
+        if token.kind != TokenKind::Whitespace {
+            if token.kind == TokenKind::Eof {
                 break;
             }
-            if token.kind == ast::lexer::TokenKind::Err {
-                panic!("Invalid token found");
+            if token.kind == TokenKind::Err {
+                println!("Invalid token found");
+                handle_array_token();
             }
-            tokens.push(token.span.literal);
+            tokens.push(token);
         }
     }
-    return tokens;
-
+    tokens
 }
 
-fn main () {
 
-    let _operation_array = handle_array_token();
+fn main() {
+    let tokens = handle_array_token();
+    // println!("{:?}", tokens);
 
+    let mut parser = Parser::new(tokens);
+    let ast = parser.parse();
+
+    let evaluated = ast.eval_step();
+
+    println!("{:?}", evaluated);
 
 }

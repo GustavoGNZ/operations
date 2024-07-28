@@ -106,12 +106,18 @@ impl<'a> Lexer<'a> {
                 TextSpan::new(0, 0, '\0'.to_string()),
             ));
         }
-
+    
         let start = self.current_pos;
         let c = self.current_char();
-
+    
         if let Some(c) = c {
-            let kind = if Self::is_number(&c) {
+            let kind = if c == '-' && self.peek_char().map_or(false, |next_c| next_c.is_digit(10)) {
+                // Handle negative numbers
+                self.consume(); // Consume the minus sign
+                let number = self.consume_number();
+                TokenKind::Number(-number) // Negate the number
+            } else if Self::is_number(&c) {
+                // Regular number
                 let number: i64 = self.consume_number();
                 TokenKind::Number(number)
             } else if Self::is_whitespace(&c) {
@@ -120,15 +126,19 @@ impl<'a> Lexer<'a> {
             } else {
                 self.consume_punctuation(c)
             };
-
+    
             let end = self.current_pos;
             let literal = self.input[start..end].to_string();
             let span = TextSpan::new(start, end, literal);
-
+    
             Some(Token::new(kind, span))
         } else {
             None
         }
+    }
+    
+    fn peek_char(&self) -> Option<char> {
+        self.input.chars().nth(self.current_pos + 1)
     }
 
     fn consume_punctuation(&mut self, c: char) -> TokenKind {
