@@ -13,22 +13,6 @@ pub enum Node {
 
 impl Node {
     // Método para obter o valor de um nó de número
-    pub fn get_number(&self) -> Option<i64> {
-        if let Node::Number(val) = self {
-            Some(*val)
-        } else {
-            None
-        }
-    }
-
-    // Método para obter a operação e operandos de um nó binário
-    pub fn get_binary_op(&self) -> Option<(&TokenKind, &Node, &Node)> {
-        if let Node::BinaryOp { op, left, right } = self {
-            Some((op, left, right))
-        } else {
-            None
-        }
-    }
 
     pub fn evaluate(&self, tree_str: &mut String) -> i64 {
         match self {
@@ -40,7 +24,7 @@ impl Node {
                 // Cria uma string representando a expressão atual
                 let op_str = format!(
                     "({} {} {})",
-                    left.to_string(),
+                    left_val.to_string(),
                     match op {
                         TokenKind::Plus => "+",
                         TokenKind::Minus => "-",
@@ -48,7 +32,7 @@ impl Node {
                         TokenKind::Slash => "/",
                         _ => panic!("Unexpected operator"),
                     },
-                    right.to_string()
+                    right_val.to_string()
                 );
 
                 let result = match op {
@@ -59,12 +43,18 @@ impl Node {
                     _ => panic!("Unsupported operator"),
                 };
 
-                // Atualiza a string da árvore substituindo a expressão atual pela avaliação
-                *tree_str = tree_str.replace(&op_str, &result.to_string());
 
-                // Imprime a árvore atualizada
+                // Verifica se a expressão está na string antes da substituição
+                if tree_str.contains(&op_str) {
+                    // Substitui a expressão atual pela avaliação
+                    *tree_str = tree_str.replace(&op_str, &result.to_string());
+
+                    // Imprime a árvore atualizada
+                } else {
+                    // Adiciona mensagens de depuração detalhadas
+                    println!("Error: The expression '{}' was not found in the tree string '{}'", op_str, tree_str);
+                }
                 println!("{}", tree_str);
-
                 result
             }
         }
@@ -76,16 +66,9 @@ impl Node {
             Node::BinaryOp { op, left, right } => {
                 let left_str = left.to_string();
                 let right_str = right.to_string();
-                let op_str = match op {
-                    TokenKind::Plus => "+",
-                    TokenKind::Minus => "-",
-                    TokenKind::Asterisk => "*",
-                    TokenKind::Slash => "/",
-                    _ => panic!("Unexpected operator"),
-                };
 
                 // Adiciona parênteses para garantir a ordem correta das operações
-                format!("({} {} {})", left_str, op_str, right_str)
+                format!("({} {} {})", left_str, op, right_str)
             }
         }
     }

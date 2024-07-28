@@ -35,8 +35,7 @@ fn main() {
     let mut parser = Parser::new(tokens);
     let ast = parser.parse();
 
-    let evaluated = ast.eval_step();
+    let _evaluated = ast.eval_step();
 
-    println!("{:?}", evaluated);
 
 }
