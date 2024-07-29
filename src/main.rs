@@ -4,13 +4,13 @@ use crate::ast::parser::{Parser};
 use crate::ast::lexer::{Lexer, Token, TokenKind};
 
 fn tokenize(lexer: &mut Lexer, tokens: &mut Vec<Token>) {
-    while let Some(token) = lexer.next_token() {
-        if token.kind != TokenKind::Whitespace {
-            if token.kind == TokenKind::Eof {
+    while let Some(token) = lexer.proximo_token() {
+        if token.kind != TokenKind::EspacoEmBranco {
+            if token.kind == TokenKind::FimDeArquivo {
                 break;
             }
-            if token.kind == TokenKind::Err {
-                println!("Invalid token found");
+            if token.kind == TokenKind::Erro {
+                println!("Token invalido encontrado");
                 return; // Saímos da função se encontramos um token inválido
             }
             tokens.push(token);

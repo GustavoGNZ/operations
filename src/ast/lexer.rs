@@ -17,9 +17,9 @@ impl TextSpan {
         }
     }
 
-    pub fn combine(mut spans: Vec<TextSpan>) -> TextSpan {
+    pub fn combinar(mut spans: Vec<TextSpan>) -> TextSpan {
         if spans.is_empty() {
-            println!("Cannot combine empty spans");
+            println!("Não é possível combinar spans vazios");
         }
         spans.sort_by(|a, b| a.start.cmp(&b.start));
 
@@ -33,7 +33,7 @@ impl TextSpan {
         )
     }
 
-    pub fn length(&self) -> usize {
+    pub fn comprimento(&self) -> usize {
         self.end - self.start
     }
 
@@ -44,31 +44,31 @@ impl TextSpan {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenKind {
-    Number(i64),
-    Plus,
-    Minus,
-    Asterisk,
-    Slash,
-    Eof,
-    Err,
-    Whitespace,
-    LeftParen,
-    RightParen,
+    Numero(i64),
+    Mais,
+    Menos,
+    Asterisco,
+    Barra,
+    FimDeArquivo,
+    Erro,
+    EspacoEmBranco,
+    ParentesesEsquerdo,
+    ParentesesDireito,
 }
 
 impl Display for TokenKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            TokenKind::Number(_) => write!(f, "Number"),
-            TokenKind::Plus => write!(f, "+"),
-            TokenKind::Minus => write!(f, "-"),
-            TokenKind::Asterisk => write!(f, "*"),
-            TokenKind::Slash => write!(f, "/"),
-            TokenKind::Eof => write!(f, "Eof"),
-            TokenKind::Err => write!(f, "Err"),
-            TokenKind::Whitespace => write!(f, "Whitespace"),
-            TokenKind::LeftParen => write!(f, "("),
-            TokenKind::RightParen => write!(f, ")"),
+            TokenKind::Numero(_) => write!(f, "Número"),
+            TokenKind::Mais => write!(f, "+"),
+            TokenKind::Menos => write!(f, "-"),
+            TokenKind::Asterisco => write!(f, "*"),
+            TokenKind::Barra => write!(f, "/"),
+            TokenKind::FimDeArquivo => write!(f, "Fim de Arquivo"),
+            TokenKind::Erro => write!(f, "Erro"),
+            TokenKind::EspacoEmBranco => write!(f, "Espaço em Branco"),
+            TokenKind::ParentesesEsquerdo => write!(f, "("),
+            TokenKind::ParentesesDireito => write!(f, ")"),
         }
     }
 }
@@ -98,33 +98,33 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn next_token(&mut self) -> Option<Token> {
+    pub fn proximo_token(&mut self) -> Option<Token> {
         if self.current_pos == self.input.len() {
             self.current_pos += 1;
             return Some(Token::new(
-                TokenKind::Eof,
+                TokenKind::FimDeArquivo,
                 TextSpan::new(0, 0, '\0'.to_string()),
             ));
         }
     
         let start = self.current_pos;
-        let c = self.current_char();
+        let c = self.caractere_atual();
     
         if let Some(c) = c {
-            let kind = if c == '-' && self.peek_char().map_or(false, |next_c| next_c.is_digit(10)) {
-                // Handle negative numbers
-                self.consume(); // Consume the minus sign
-                let number = self.consume_number();
-                TokenKind::Number(-number) // Negate the number
-            } else if Self::is_number(&c) {
-                // Regular number
-                let number: i64 = self.consume_number();
-                TokenKind::Number(number)
-            } else if Self::is_whitespace(&c) {
-                self.consume();
-                TokenKind::Whitespace
+            let kind = if c == '-' && self.caractere_seguinte().map_or(false, |next_c| next_c.is_digit(10)) {
+                // Lidar com números negativos
+                self.consumir(); // Consumir o sinal de menos
+                let number = self.consumir_numero();
+                TokenKind::Numero(-number) // Negar o número
+            } else if Self::eh_numero(&c) {
+                // Número regular
+                let number: i64 = self.consumir_numero();
+                TokenKind::Numero(number)
+            } else if Self::eh_espaco_em_branco(&c) {
+                self.consumir();
+                TokenKind::EspacoEmBranco
             } else {
-                self.consume_punctuation(c)
+                self.consumir_pontuacao(c)
             };
     
             let end = self.current_pos;
@@ -137,49 +137,49 @@ impl<'a> Lexer<'a> {
         }
     }
     
-    fn peek_char(&self) -> Option<char> {
+    fn caractere_seguinte(&self) -> Option<char> {
         self.input.chars().nth(self.current_pos + 1)
     }
 
-    fn consume_punctuation(&mut self, c: char) -> TokenKind {
-        self.consume();
+    fn consumir_pontuacao(&mut self, c: char) -> TokenKind {
+        self.consumir();
         match c {
-            '+' => TokenKind::Plus,
-            '-' => TokenKind::Minus,
-            '*' => TokenKind::Asterisk,
-            '/' => TokenKind::Slash,
-            '(' => TokenKind::LeftParen,
-            ')' => TokenKind::RightParen,
-            _ => TokenKind::Err,
+            '+' => TokenKind::Mais,
+            '-' => TokenKind::Menos,
+            '*' => TokenKind::Asterisco,
+            '/' => TokenKind::Barra,
+            '(' => TokenKind::ParentesesEsquerdo,
+            ')' => TokenKind::ParentesesDireito,
+            _ => TokenKind::Erro,
         }
     }
 
-    fn is_number(c: &char) -> bool {
+    fn eh_numero(c: &char) -> bool {
         c.is_digit(10)
     }
 
-    fn is_whitespace(c: &char) -> bool {
+    fn eh_espaco_em_branco(c: &char) -> bool {
         c.is_whitespace()
     }
 
-    fn current_char(&self) -> Option<char> {
+    fn caractere_atual(&self) -> Option<char> {
         self.input.chars().nth(self.current_pos)
     }
 
-    fn consume(&mut self) -> Option<char> {
+    fn consumir(&mut self) -> Option<char> {
         if self.current_pos >= self.input.len() {
             return None;
         }
-        let c = self.current_char();
+        let c = self.caractere_atual();
         self.current_pos += 1;
         c
     }
 
-    fn consume_number(&mut self) -> i64 {
+    fn consumir_numero(&mut self) -> i64 {
         let mut number: i64 = 0;
-        while let Some(c) = self.current_char() {
+        while let Some(c) = self.caractere_atual() {
             if c.is_digit(10) {
-                self.consume().unwrap();
+                self.consumir().unwrap();
                 number = number * 10 + c.to_digit(10).unwrap() as i64;
             } else {
                 break;
@@ -188,4 +188,3 @@ impl<'a> Lexer<'a> {
         number
     }
 }
-

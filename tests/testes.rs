@@ -2,13 +2,13 @@ use operations::ast::lexer::{Lexer, TokenKind, Token};
 use operations::ast::parser::{Parser};
 
 fn tokenize(lexer: &mut Lexer, tokens: &mut Vec<Token>) {
-    while let Some(token) = lexer.next_token() {
-        if token.kind != TokenKind::Whitespace {
-            if token.kind == TokenKind::Eof {
+    while let Some(token) = lexer.proximo_token() {
+        if token.kind != TokenKind::EspacoEmBranco {
+            if token.kind == TokenKind::FimDeArquivo {
                 break;
             }
-            if token.kind == TokenKind::Err {
-                println!("Invalid token found");
+            if token.kind == TokenKind::Erro {
+                println!("Token invalido encontrado");
                 return; // Saímos da função se encontramos um token inválido
             }
             tokens.push(token);
