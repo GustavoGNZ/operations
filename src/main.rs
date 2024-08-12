@@ -3,33 +3,38 @@ use std::io;
 use crate::ast::parser::{Parser};
 use crate::ast::lexer::{Lexer, Token, TokenKind};
 
-fn tokenize(lexer: &mut Lexer, tokens: &mut Vec<Token>) {
+fn tokenize(lexer: &mut Lexer, tokens: &mut Vec<Token>) -> bool {
     while let Some(token) = lexer.proximo_token() {
         if token.kind != TokenKind::EspacoEmBranco {
             if token.kind == TokenKind::FimDeArquivo {
                 break;
             }
             if token.kind == TokenKind::Erro {
-                println!("Token invalido encontrado");
-                return; // Saímos da função se encontramos um token inválido
+                println!("Token inválido encontrado");
+                return false; // Indica que encontramos um token inválido
             }
             tokens.push(token);
         }
     }
+    true // Todos os tokens são válidos
 }
 
 fn handle_array_token() -> Vec<Token> {
-    println!("Digite a expressão matemática: ");
-    let mut input = String::new();
+    loop {
+        println!("Digite a expressão matemática: ");
+        let mut input = String::new();
 
-    io::stdin().read_line(&mut input).expect("Erro ao ler a linha");
+        io::stdin().read_line(&mut input).expect("Erro ao ler a linha");
 
-    let mut lexer = Lexer::new(&input);
-    let mut tokens = Vec::new();
+        let mut lexer = Lexer::new(&input);
+        let mut tokens = Vec::new();
 
-    tokenize(&mut lexer, &mut tokens);
-
-    tokens
+        if tokenize(&mut lexer, &mut tokens) {
+            return tokens; // Retorna apenas se os tokens forem válidos
+        } else {
+            println!("Expressão inválida. Por favor, tente novamente.");
+        }
+    }
 }
 
 fn main() {
